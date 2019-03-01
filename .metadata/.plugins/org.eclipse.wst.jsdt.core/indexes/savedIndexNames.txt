@@ -1,0 +1,5 @@
+INDEX VERSION 1.4+/Users/cuihao/workspace/.metadata/.plugins/org.eclipse.wst.jsdt.core/indexes
+1163509615.index
+4205378213.index
+3711391670.index
+2299046493.index

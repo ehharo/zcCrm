@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/aop 
+						http://www.springframework.org/schema/aop/spring-aop.xsd
+						http://www.springframework.org/schema/context 
+						http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/tx 
+						http://www.springframework.org/schema/tx/spring-tx.xsd
+						http://www.springframework.org/schema/mvc 
+						http://www.springframework.org/schema/mvc/spring-mvc.xsd
+						">
+	
+	<!-- 启用注解 -->
+	<context:annotation-config />
+	
+	<!-- 启动组件扫描 -->
+	<context:component-scan base-package="com.lx.test" />
+	
+	<!-- 配置文件扫描 -->
+	<context:property-placeholder location="classpath:db.properties"/>
+	
+	<!-- 数据库连接池
+		destroy-method=close的作用是当数据库连接不使用的时候,就把该连接重新放到数据池中,方便下次使用调用.
+	 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    <property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url}"/>
+		<property name="username" value="${jdbc.username}"/>
+		<property name="password" value="${jdbc.password}"/>
+		<!-- 连接池的最大数据库连接数。设为0表示无限制。 -->
+		<property name="maxActive" value="30"/>
+		<!-- 最大等待连接中的数量,设 0 为没有限制  -->
+		<property name="maxIdle" value="5"/>
+	</bean>	
+	
+	<!-- 事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 数据源 -->
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- 声明通知 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+	  <tx:attributes>
+	     <!-- 传播行为  -->
+	    <tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Execption" />
+	    <tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Execption"/>
+	    <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Execption"/>
+	    <tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Execption"/>
+	    <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+	    <tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+	  </tx:attributes>
+	</tx:advice>
+	
+	<!-- 事务切入service层   ： (AOP :面向切面编程)
+ 		(* com.lx.test.service.Impl.*.*(..))中几个通配符的含义：
+		   第一个 * —— 通配 任意返回值类型
+		   第二个 * —— 通配 包com.lx.test.service.Impl下的任意class
+		   第三个 * —— 通配 包com.lx.test.service.Impl下的任意class的任意方法
+                       第四个 .. —— 通配 方法可以有0个或多个参数
+     -->
+	<aop:config>								
+		<aop:pointcut id="pc" expression="execution(* com.lx.test.service.*.*.Impl.*.*(..))" />
+		<aop:advisor pointcut-ref="pc" advice-ref="txAdvice" />
+	</aop:config>		
+	
+	<!-- 让spring管理sqlsessionfactory 使用mybatis和spring整合包中的 SqlSessionFactoryBean-->
+	<!-- 3.配置mybatis -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<property name="dataSource" ref="dataSource" />
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"></property>
+    </bean>
+    
+    <!-- IOC : 控制反转 -依赖注入 -->
+    <!-- SqlSessionTemplate：MyBatis提供的持久层访问模板化的工具，线程安全，可通过构造参数或依赖注入SqlSessionFactory实例 -->
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory" />
+	</bean>
+	
+	
+	<!-- 
+		控制反转（Inversion of Control，英文缩写为IoC）是一个重要的面向对象编程的法则来削减计算机程序的耦合问题，
+		也是轻量级的Spring框架的核心。 控制反转一般分为两种类型，依赖注入（Dependency Injection，简称DI）和依赖查找（Dependency Lookup）。
+		依赖注入应用比较广泛。
+		IoC最大的好处是什么？因为把对象生成放在了XML里定义，所以当我们需要换一个实现子类将会变成很简单（一般这样的对象都是实现于某种接口的），
+		只要修改XML就可以了，这样我们甚至可以实现对象的热插拔（有点像USB接口和SCSI硬盘了）。
+		IoC最大的缺点是什么？（1）生成一个对象的步骤变复杂了（事实上操作上还是挺简单的），对于不习惯这种方式的人，会觉得有些别扭和不直观。
+		（2）对象生成因为是使用反射编程，在效率上有些损耗。但相对于IoC提高的维护性和灵活性来说，这点损耗是微不足道的，除非某对象的生成对效率要求特别高。
+		（3）缺少IDE重构操作的支持，如果在Eclipse要对类改名，那么你还需要去XML文件里手工去改了，这似乎是所有XML方式的缺陷所在。
+	 -->
+	 
+	 <!-- 
+	 	在软件业，AOP为Aspect Oriented Programming的缩写，意为：面向切面编程，
+	 	通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，
+	 	是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
+	 	主要用途：日志记录，性能统计，安全控制，事务处理，异常处理等等。
+	 
+	  -->
+	  
+</beans>

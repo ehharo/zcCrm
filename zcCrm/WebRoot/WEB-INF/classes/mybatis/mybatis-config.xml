@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 缩写 -->
+	<typeAliases>
+		<typeAlias type="java.util.Map" alias="map"/>
+		<typeAlias type="java.lang.String" alias="string"/>
+		<typeAlias type="com.lx.test.entity.system.Menu" alias="menu"/>
+		<typeAlias type="com.lx.test.entity.system.Role" alias="role"/>
+		<typeAlias type="com.lx.test.entity.system.User" alias="user"/>
+		<typeAlias type="com.lx.test.entity.system.Right" alias="right"/>
+	</typeAliases>
+	<mappers>
+		<mapper resource="mybatis/system/login/LoginMapper.xml"/>
+		<mapper resource="mybatis/system/user/UserMapper.xml"/>
+	</mappers>
+</configuration>

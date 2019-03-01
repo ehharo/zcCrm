@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="loginMapper">
+	<!-- 自定义设置pojo与结果集之间的映射关系 -->
+	<resultMap type="user" id="usermap">
+		<!-- 
+			该映射关系中的主键 
+			column : 在数据库表中的某一个字段名 
+			property : 在pojo中的某一个成员属性
+		-->
+		<id column="uid" property="uid" />
+		<result column="username" property="userName"  />
+		<result column="password" property="password" />
+	</resultMap>
+	<!-- 使用resultMap接收查询结果 -->
+	<select id="checkUser" parameterType="map" resultMap="usermap">
+		<!-- 
+			   使用了resultMap这个属性来进行结果集映射的时候
+			   不要使用*了，mybatis会帮我们自动进行关联，一旦发现查询结果中的字段与resultMap中的节点不匹配会报错。
+			   * 如果字段名与resultMap的设置名不同，sql查询时要使用as的关键字将其设置为column中的某个字段
+		 -->
+		select uid as uid,username as userName,password as password from user
+		 where username = #{username} and password = #{password}
+		 and status = '1'	
+	</select>
+</mapper>

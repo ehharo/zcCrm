@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="zcCrm"
+  id="myeclipse.1498124573523"
+  context-root="/zcCrm"
+  j2ee-spec="6.0"
+  archive="zcCrm.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+
